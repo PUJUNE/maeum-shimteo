@@ -1,0 +1,2 @@
+{ "name": "마음쉼터", "short_name": "마음쉼터", "start_url": "./", "display": "fullscreen", "background_color": "#efebe3", "theme_color": "#efebe3",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

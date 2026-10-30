@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>마음쉼터 — 절·교회·성당·OHC</title>
+<meta name="description" content="절, 교회, 성당, 그리고 OHC를 탭으로 오가며 머무는 3D 온라인 쉼터">
+<meta name="theme-color" content="#efebe3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<style>
+:root{
+  --bg:#efebe3; --ink:#2f2c27; --sub:#7a7368; --line:rgba(255,255,255,.28);
+  --glass:rgba(28,26,22,.42); --glass-strong:rgba(28,26,22,.62); --accent:#d8c08a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+#view{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none;outline:none}
+
+/* 입장 화면 */
+#gate{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%,#f7f4ee 0%,#e9e3d8 70%,#ded6c8 100%);transition:opacity .6s}
+#gate.hide{opacity:0;pointer-events:none}
+.gate-card{width:min(560px,calc(100% - 32px));text-align:center}
+.gate-mark{font-size:30px;color:#8a7d64;letter-spacing:.1em}
+.gate-title{font-size:34px;font-weight:700;letter-spacing:.35em;margin:6px 0 4px;padding-left:.35em}
+.gate-sub{color:var(--sub);font-size:14px;margin-bottom:26px}
+.places{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.place{border:1px solid #d6cdbd;background:rgba(255,255,255,.55);border-radius:16px;padding:16px 6px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s}
+.place svg{width:30px;height:30px;stroke:#6d6250;fill:none;stroke-width:1.5}
+.place b{font-size:15px}
+.place small{font-size:11px;color:var(--sub)}
+.place.on{background:#fff;border-color:#a8956d;box-shadow:0 6px 20px rgba(90,70,30,.12)}
+.name-row{display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:16px;font-size:13px;color:var(--sub)}
+.name-row input{border:1px solid #d6cdbd;background:rgba(255,255,255,.7);border-radius:10px;padding:8px 10px;font:inherit;
+  width:150px;text-align:center;color:var(--ink)}
+.name-row button{border:0;background:none;color:#8a7d64;font-size:12px;text-decoration:underline}
+#enter{border:0;background:#3b352c;color:#f5efe3;border-radius:999px;padding:13px 38px;font-size:15px;letter-spacing:.1em}
+.gate-foot{margin-top:18px;font-size:11px;color:#9a917f}
+#loading{position:fixed;inset:0;z-index:25;display:none;align-items:center;justify-content:center;flex-direction:column;background:var(--bg);gap:10px}
+#loading.show{display:flex}
+#loading .dot{width:6px;height:6px;border-radius:50%;background:#b5a98f;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+
+/* 장면 UI */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:none}
+#hud.show{display:block}
+.pill{pointer-events:auto;background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:999px;color:#fff}
+.top{position:absolute;top:max(14px,env(safe-area-inset-top));left:16px;right:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.top-left{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.icon-btn{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line);padding:0}
+.icon-btn svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.7}
+.tabs{display:flex;padding:4px;gap:2px}
+.tabs button{border:0;background:none;border-radius:999px;padding:8px 13px;font-size:14px;white-space:nowrap;color:rgba(255,255,255,.75)}
+.tabs button.on{background:rgba(255,255,255,.2);color:#fff;font-weight:700}
+#roomBtn{border:1px solid var(--line);padding:10px 15px;font-size:13px;display:flex;gap:6px;align-items:center}
+#roomBtn span{opacity:.75}
+.top-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.tools{display:flex;align-items:center;padding:4px 6px;gap:2px}
+.tools button{border:0;background:none;height:36px;min-width:36px;padding:0 8px;display:flex;align-items:center;gap:6px;border-radius:999px}
+.tools button:hover{background:rgba(255,255,255,.12)}
+.tools svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.7}
+#count{font-weight:700;font-size:14px}
+#listenBtn{border:1px solid var(--line);padding:10px 15px;font-size:13px}
+#listenBtn.on{background:rgba(216,192,138,.55)}
+#toasts{position:absolute;top:calc(max(14px,env(safe-area-inset-top)) + 100px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:calc(100% - 32px)}
+.toast{background:var(--glass-strong);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:10px 18px;font-size:13px;animation:tin .35s ease;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.toast.out{opacity:0;transform:translateY(-6px);transition:.4s}
+@keyframes tin{from{opacity:0;transform:translateY(6px)}}
+#busy{pointer-events:auto;display:none;align-items:center;gap:14px;padding:8px 8px 8px 18px;font-size:13px}
+#busy.show{display:flex}
+#busy button{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:7px 14px;font-weight:700}
+.bottom{position:absolute;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;padding:7px;gap:4px}
+.bottom button{border:0;background:none;width:98px;padding:9px 0 7px;border-radius:999px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;color:#fff}
+.bottom button svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:1.5}
+.bottom button:hover{background:rgba(255,255,255,.1)}
+.bottom button.on{background:rgba(255,255,255,.2)}
+#labels{position:absolute;inset:0;overflow:hidden}
+.label{position:absolute;transform:translate(-50%,-100%);background:rgba(255,255,255,.88);color:#3a352d;border-radius:999px;padding:3px 10px 3px 4px;
+  font-size:11.5px;display:flex;gap:6px;align-items:center;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.label i{font-style:normal;width:18px;height:18px;border-radius:50%;background:#5f6b58;color:#fff;font-size:10px;display:grid;place-items:center}
+.bubble{position:absolute;transform:translate(-50%,-100%);background:rgba(30,28,24,.6);color:#fff;border-radius:10px;padding:3px 9px;font-size:11px;white-space:nowrap;
+  animation:tin .3s ease}
+.hint{position:absolute;left:50%;bottom:calc(max(18px,env(safe-area-inset-bottom)) + 92px);transform:translateX(-50%);color:rgba(255,255,255,.85);font-size:12px;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);transition:opacity 1s;white-space:nowrap}
+.hint.gone{opacity:0}
+
+/* 패널 */
+.panel{position:fixed;z-index:20;right:16px;top:calc(max(14px,env(safe-area-inset-top)) + 58px);width:min(320px,calc(100% - 32px));max-height:min(70vh,560px);overflow:auto;
+  background:rgba(250,248,243,.96);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:16px;display:none;color:var(--ink)}
+.panel.show{display:block}
+.panel h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.panel h3 button{border:0;background:none;font-size:20px;line-height:1;color:var(--sub)}
+.vlist{list-style:none;margin:0;padding:0}
+.vlist li{display:flex;justify-content:space-between;gap:8px;padding:7px 2px;border-bottom:1px solid #ece6da;font-size:13px}
+.vlist li span{color:var(--sub);font-size:12px;text-align:right}
+.vlist li.me b{color:#6c5a33}
+#roomPanel{left:16px;right:auto}
+.rooms{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rooms button{border:1px solid #e0d8c9;background:#fff;border-radius:10px;padding:8px 4px;font-size:12px;display:flex;flex-direction:column;gap:2px}
+.rooms button small{color:var(--sub);font-size:10.5px}
+.rooms button.on{border-color:#a8956d;background:#f6efe0}
+.set-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #ece6da;font-size:13px;gap:8px}
+.set-row input[type=text]{border:1px solid #d6cdbd;border-radius:8px;padding:6px 8px;font:inherit;width:130px}
+.set-row button{border:1px solid #d6cdbd;background:#fff;border-radius:8px;padding:6px 10px;font-size:12px}
+.set-note{font-size:11.5px;color:var(--sub);line-height:1.6;margin-top:10px}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:40;transition:opacity .5s}
+
+@media (max-width:700px){
+  .places{grid-template-columns:repeat(2,1fr)}
+  .tabs button{padding:7px 8px;font-size:12.5px}
+  .top-left{flex-wrap:nowrap}
+  #roomBtn{display:none}
+  .bottom button{width:74px;font-size:11.5px}
+  .top{left:12px;right:12px}
+  #toasts{top:calc(max(14px,env(safe-area-inset-top)) + 112px)}
+  #listenBtn{padding:8px 12px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<canvas id="view" tabindex="0"></canvas>
+
+<section id="gate">
+  <div class="gate-card">
+    <div class="gate-mark">◇</div>
+    <div class="gate-title">마음쉼터</div>
+    <div class="gate-sub">들어갈 곳을 고르세요</div>
+    <div class="places" id="placeCards"></div>
+    <div class="name-row">이름 <input id="nameInput" maxlength="10" aria-label="내 이름"><button id="reroll" type="button">다른 이름</button></div>
+    <button id="enter" type="button">들어가기</button>
+    <div class="gate-foot">마우스 끌기로 둘러보기 · 바닥 누르기 또는 WASD로 걷기</div>
+  </div>
+</section>
+
+<section id="loading"><div style="font-size:26px;color:#8a7d64">◇</div><b id="loadTitle" style="font-size:22px;letter-spacing:.3em">마음쉼터</b>
+  <div id="loadText" style="color:var(--sub);font-size:13px">여는 중</div><div class="dot"></div></section>
+
+<section id="hud">
+  <div id="labels"></div>
+  <div class="top">
+    <div class="top-left">
+      <button class="pill icon-btn" id="exitBtn" aria-label="나가기"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 17l-5-5 5-5M5 12h11"/></svg></button>
+      <nav class="pill tabs" id="tabs" aria-label="장소"></nav>
+      <button class="pill" id="roomBtn"><b id="roomName">청연당</b><span id="roomNo">1</span> ⌄</button>
+    </div>
+    <div class="top-right">
+      <div class="pill tools">
+        <button id="countBtn" aria-label="함께 있는 사람 보기"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><path d="M15.5 5.2a3 3 0 0 1 0 5.6M17.5 14.4c1.7.6 2.8 2.2 3 4.6"/></svg><span id="count">0</span></button>
+        <button id="soundBtn" aria-label="소리 켜기"><svg viewBox="0 0 24 24" id="soundIcon"></svg></button>
+        <button id="setBtn" aria-label="설정"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+        <button id="shotBtn" aria-label="장면 담기"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+      </div>
+      <button class="pill" id="listenBtn">염불 듣기</button>
+    </div>
+  </div>
+  <div id="toasts"><div class="pill" id="busy"><span id="busyText">방석으로 가는 중</span><button id="stopBtn">멈추기</button></div></div>
+  <div class="hint" id="hint">끌어서 둘러보고, 바닥을 누르면 걸어갑니다</div>
+  <nav class="pill bottom" id="actions" aria-label="할 일"></nav>
+</section>
+
+<aside class="panel" id="visitPanel"><h3>함께 있는 사람 <button data-close>×</button></h3><ul class="vlist" id="vlist"></ul></aside>
+<aside class="panel" id="roomPanel"><h3><span id="roomPanelTitle">방 고르기</span> <button data-close>×</button></h3><div class="rooms" id="rooms"></div></aside>
+<aside class="panel" id="setPanel"><h3>설정 <button data-close>×</button></h3>
+  <div class="set-row">내 이름 <span><input type="text" id="nameEdit" maxlength="10"> <button id="nameSave">바꾸기</button></span></div>
+  <div class="set-row">그림자 <button id="shadowBtn">켜짐</button></div>
+  <div class="set-row">화질 <button id="qualityBtn">보통</button></div>
+  <div class="set-note">이 공간은 서버 없이 이 기기 안에서만 돌아가므로 접속이 끊기지 않습니다. 함께 있는 방문객은 머무는 느낌을 위해 이 기기에서 그려지는 가상의 인물입니다.</div>
+</aside>
+<div id="flash"></div>
+
+<script type="module" src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
