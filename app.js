@@ -82,7 +82,7 @@ const PLACES = {
     style: 'office', range: [14, 24],
     actions: [
       { id: 'nod', label: '목례', icon: 'nod', msg: '목례로 인사했어요', bubble: '안녕하세요' },
-      { id: 'coffee', label: '커피', icon: 'coffee', msg: '커피 한 잔 하고 있어요', bubble: '커피' },
+      { id: 'coffee', label: '커피', icon: 'coffee', msg: '일마지오에서 커피 한 잔 하고 있어요', bubble: '커피' },
       { id: 'clap', label: '박수', icon: 'clap', msg: '박수를 쳤어요', bubble: '짝짝' },
       { id: 'sit', label: '자리로', icon: 'seat', msg: '자리에 앉았어요', needSeat: true, busy: '자리로 가는 중', quiet: true },
     ],
@@ -709,6 +709,22 @@ function buildOHC() {
   box(g, .6, .5, .6, warmWood, 10.9, .25, -4.8);
   // 안내데스크
   box(g, 3.4, 1.05, .8, white, 4.4, .53, -1.6); box(g, 3.5, .06, .9, warmWood, 4.4, 1.08, -1.6, false); box(g, .5, .32, .04, black, 4, 1.3, -1.8, false);
+  // 로비 카페 「일마지오」(IL MAGGIO) — 정문 오른쪽
+  const cafeWood = mat('#7a5a40', { r: .6 }), cafeTop = mat('#efe9df', { r: .35 });
+  box(g, 4.6, 1.02, .75, cafeWood, 6, .51, 10.7); box(g, 4.7, .06, .9, cafeTop, 6, 1.05, 10.65, false);
+  box(g, .9, .55, .5, mat('#b9bec3', { r: .3, m: .8 }), 5.2, 1.36, 10.8, false); box(g, .9, .1, .5, black, 5.2, 1.68, 10.8, false);
+  for (const ox of [-.2, .1]) cyl(g, .04, .035, .08, mat('#ffffff', { r: .4 }), 5.2 + ox, 1.13, 10.5, 8, false);
+  box(g, .5, .35, .4, mat('#d9d4ca'), 7.3, 1.25, 10.8, false); box(g, .32, .22, .02, black, 6.3, 1.2, 10.36, false);
+  box(g, 5.2, .06, .35, cafeTop, 6, 1.7, 13.75, false); box(g, 5.2, .06, .35, cafeTop, 6, 2.3, 13.75, false);
+  for (let i = 0; i < 12; i++) cyl(g, .07, .06, .16, mat(pick(['#f3efe6', '#3b2a20', '#c9a37a', '#ffffff'])), 3.8 + i * .4, 1.82, 13.75, 8, false);
+  box(g, 5.6, 2.8, .12, mat('#3d3029', { r: .8 }), 6, 2.2, 13.9);
+  const cafeSign = textTex([{ t: 'IL MAGGIO', font: '600 150px Georgia, "Times New Roman", serif', y: 120, color: '#f3e7cf' }, { t: '일마지오 · CAFE', font: '500 54px sans-serif', y: 225, color: '#d9c6a3' }], { w: 1024, h: 300 });
+  plane(g, 3.6, 1.05, new THREE.MeshBasicMaterial({ map: cafeSign, transparent: true }), 6, 3.2, 13.83, Math.PI);
+  const menu = textTex([{ t: 'MENU', font: '700 64px Georgia, serif', y: 60, color: '#f3e7cf' }, { t: 'Americano', font: '400 40px Georgia, serif', y: 140, color: '#e8dcc4' }, { t: 'Caffè Latte', font: '400 40px Georgia, serif', y: 200, color: '#e8dcc4' }, { t: 'Tea · Juice', font: '400 40px Georgia, serif', y: 260, color: '#e8dcc4' }], { w: 512, h: 320, bg: '#2a2f2b' });
+  box(g, 1.2, .75, .04, new THREE.MeshStandardMaterial({ map: menu, roughness: .8 }), 8.6, 1.95, 13.82, false).rotation.y = Math.PI;
+  for (const x of [4.6, 6, 7.4]) { box(g, .01, 1.1, .01, mat('#222'), x, H - .55, 10.7, false); const pd = cyl(g, .14, .2, .2, mat('#e9dcc2', { e: '#ffd9a0', ei: .9 }), x, H - 1.2, 10.7, 12, false); }
+  const cafeL = new THREE.PointLight('#ffcf94', 6, 7, 2); cafeL.position.set(6, 3.2, 11.5); g.add(cafeL);
+  for (const x of [4.6, 7.4]) seats.push({ x, z: 9.7, ry: 0, kind: 'look', approach: { x, z: 9.0 } });
   // 로고 유리벽 + 스피드게이트 (z = -7)
   for (const sx of [-1, 1]) {
     const gw = box(g, W / 2 - 1.6, H - .1, .05, glass, sx * (W / 4 + .8), H / 2, -7, false); gw.receiveShadow = false;
@@ -728,7 +744,7 @@ function buildOHC() {
   const vase = add(g, new THREE.SphereGeometry(.32, 20, 16), mat('#a9c3b4', { r: .25 }), 3.2, 1.12, -L / 2 + .6); vase.scale.y = 1.15;
   cyl(g, .08, .12, .22, mat('#a9c3b4', { r: .25 }), 3.2, 1.55, -L / 2 + .6, 12);
   const plant = (x, z, s = 1) => { cyl(g, .28 * s, .22 * s, .55 * s, white, x, .28 * s, z); for (let i = 0; i < 6; i++) { const lf = sph(g, .34 * s, mat(pick(['#3f7d46', '#4f8f52', '#2f6b3a'])), x + (Math.random() - .5) * .45 * s, (.8 + i * .24) * s, z + (Math.random() - .5) * .45 * s); lf.scale.set(1, 1.3, 1); } };
-  plant(-3.4, -L / 2 + .9, 1.5); plant(6.2, -L / 2 + .9, 1.3); plant(-10, -L / 2 + .9, 1.6); plant(10.6, -7.8, 1.3); plant(-2.6, -6.4, 1.1); plant(2.6, -6.4, 1.1); plant(10.8, 11.6, 1.5); plant(-10.6, 11.6, 1.5);
+  plant(-3.4, -L / 2 + .9, 1.5); plant(6.2, -L / 2 + .9, 1.3); plant(-10, -L / 2 + .9, 1.6); plant(10.6, -7.8, 1.3); plant(-2.6, -6.4, 1.1); plant(2.6, -6.4, 1.1); plant(10.8, 12.4, 1.3); plant(-10.6, 11.6, 1.5);
   for (const x of [-7, 7]) seats.push({ x, z: -11.5, ry: Math.PI, kind: 'look', approach: { x, z: -10.5 } });
   // 정문
   for (const sx of [-1, 1]) box(g, W / 2 - 2.2, H, .3, white, sx * (W / 4 + 1.1), H / 2, L / 2 + .15);
@@ -740,7 +756,7 @@ function buildOHC() {
   sun(g, '#fff7ea', 1.6, [22, 14, 4], [0, 0, 0], 20);
   for (const [x, z, c, i] of [[-6, 4, '#ffc98a', 7], [-6, -4, '#ffc98a', 6], [5, 3, '#fff1dc', 5], [0, -10.5, '#ffd3a0', 7]]) { const p = new THREE.PointLight(c, i, 14, 1.6); p.position.set(x, H - .6, z); g.add(p); }
   scene.fog = new THREE.Fog('#efede8', 36, 80); scene.background = new THREE.Color('#efede8');
-  return { group: g, seats, door: { x: 0, z: L / 2 - 1 }, start: { x: 0, z: 10.5 }, bounds: { x: W / 2 - .8, z0: -L / 2 + 1.2, z1: L / 2 - .8 }, aisleX: 0 };
+  return { group: g, seats, door: { x: 0, z: L / 2 - 1 }, start: { x: 0, z: 10.5 }, bounds: { x: W / 2 - .8, z0: -L / 2 + 1.2, z1: L / 2 - .8 }, aisleX: 0, coffee: { x: 6, z: 9.7, ry: 0 } };
 }
 const BUILD = { temple: buildTemple, church: buildChurch, cathedral: buildCathedral, ohc: buildOHC };
 
@@ -1001,9 +1017,9 @@ function doAction(ac) {
     return;
   }
   if (ac.id === 'coffee' && world.coffee && !me.seat) {
-    const f = world.coffee; setBusy('커피 머신으로 가는 중', null); const st = routeFrom(me);
+    const f = world.coffee; setBusy('일마지오로 가는 중', null); const st = routeFrom(me);
     const cz = st.length ? st[st.length - 1].z : me.root.position.z;
-    me.goTo([...st, { x: 0, z: cz }, f], () => { me.root.rotation.y = Math.PI; perform(); });
+    me.goTo([...st, { x: 0, z: cz }, { x: 0, z: f.z - .8 }, f], () => { me.root.rotation.y = f.ry ?? Math.PI; perform(); });
     return;
   }
   if (ac.needSeat && !me.seat) {
