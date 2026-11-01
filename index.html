@@ -65,6 +65,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tools button:hover{background:rgba(255,255,255,.12)}
 .tools svg{width:19px;height:19px;stroke:#fff;fill:none;stroke-width:1.7}
 #count{font-weight:700;font-size:14px}
+.zoom{flex-direction:column;padding:4px}
 #listenBtn{border:1px solid var(--line);padding:10px 15px;font-size:13px}
 #listenBtn.on{background:rgba(216,192,138,.55)}
 #toasts{position:absolute;top:calc(max(14px,env(safe-area-inset-top)) + 100px);left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;width:max-content;max-width:calc(100% - 32px)}
@@ -157,6 +158,7 @@ button{font:inherit;color:inherit;cursor:pointer}
         <button id="shotBtn" aria-label="장면 담기"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
       </div>
       <button class="pill" id="listenBtn">염불 듣기</button>
+      <div class="pill tools zoom"><button id="zoomIn" aria-label="확대"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><button id="zoomOut" aria-label="축소"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button></div>
     </div>
   </div>
   <div id="toasts"><div class="pill" id="busy"><span id="busyText">방석으로 가는 중</span><button id="stopBtn">멈추기</button></div></div>

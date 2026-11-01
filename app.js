@@ -1408,7 +1408,7 @@ function spawnTick(dt) {
 /* ───────── 입력 ───────── */
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 let drag = null;
-canvas.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, moved: 0, id: e.pointerId }; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointerdown', (e) => { if (touches.size) return; drag = { x: e.clientX, y: e.clientY, moved: 0, id: e.pointerId }; canvas.setPointerCapture(e.pointerId); });
 canvas.addEventListener('pointermove', (e) => {
   if (!drag || drag.id !== e.pointerId) return;
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = e.clientX; drag.y = e.clientY;
@@ -1431,7 +1431,20 @@ canvas.addEventListener('pointerup', (e) => {
     me.goTo([...st, ...(world.route ? world.route(from, hit) : [hit])]);
   }
 });
-canvas.addEventListener('wheel', (e) => { state.dist = clamp(state.dist + e.deltaY * .004, 2.2, 12); e.preventDefault(); }, { passive: false });
+// 확대·축소: 휠, 두 손가락 벌리기, +/- 단추와 키. Company 는 거리가 넓어 더 멀리까지 물러난다
+const zoomMax = () => state.place === 'ohc' ? 70 : 20;
+const zoomBy = (f) => { state.dist = clamp(state.dist * f, 1.6, zoomMax()); };
+canvas.addEventListener('wheel', (e) => { zoomBy(Math.exp(e.deltaY * .0015)); e.preventDefault(); }, { passive: false });
+const touches = new Map(); let pinch = 0;
+canvas.addEventListener('pointerdown', (e) => { touches.set(e.pointerId, e); if (touches.size === 2) { const [a, b] = touches.values(); pinch = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); drag = null; } });
+canvas.addEventListener('pointermove', (e) => {
+  if (!touches.has(e.pointerId)) return; touches.set(e.pointerId, e);
+  if (touches.size === 2 && pinch) { const [a, b] = touches.values(), d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY); if (d > 0) zoomBy(pinch / d); pinch = d; }
+});
+for (const t of ['pointerup', 'pointercancel']) canvas.addEventListener(t, (e) => { touches.delete(e.pointerId); if (touches.size < 2) pinch = 0; });
+$('#zoomIn').onclick = () => zoomBy(1 / 1.35);
+$('#zoomOut').onclick = () => zoomBy(1.35);
+addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; if (e.key === '+' || e.key === '=') zoomBy(1 / 1.2); if (e.key === '-' || e.key === '_') zoomBy(1.2); });
 addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; state.keys[e.key.toLowerCase()] = true; });
 addEventListener('keyup', (e) => { state.keys[e.key.toLowerCase()] = false; });
 addEventListener('blur', () => { state.keys = {}; });
