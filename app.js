@@ -915,9 +915,10 @@ function buildStreet(root) {
   for (let x = X0 + 4; x < X1 - 4; x += 7) { if (nearBridge(x)) continue; ginkgo(g, x + rr(-.5, .5), 33.3); }
   for (let x = X0 + 10; x < X1 - 4; x += 28) { if (nearBridge(x)) continue; streetLight(g, x, 34.4, -1); }
   const poles = [];
-  for (let x = -200; x < 126; x += 30) { if (nearBridge(x) || (x > 33 && x < 54)) continue; cyl(g, .17, .22, 11, mat('#a8a8a2', { r: .9 }), x, 5.5, 20.6, 10); box(g, 2, .12, .12, mat('#555'), x, 10.2, 20.6, false); box(g, .3, 1.4, .32, mat('#f2c53d'), x, .7, 20.6, false); poles.push(x); solid(x - .2, x + .2, 20.4, 20.8); }
+  // 전신주는 차도 쪽 인도 가장자리(연석 z 22 바로 안쪽)
+  for (let x = -200; x < 126; x += 30) { if (nearBridge(x) || (x > 33 && x < 54)) continue; cyl(g, .17, .22, 11, mat('#a8a8a2', { r: .9 }), x, 5.5, 21.65, 10); box(g, 2, .12, .12, mat('#555'), x, 10.2, 21.65, false); box(g, .3, 1.4, .32, mat('#f2c53d'), x, .7, 21.65, false); poles.push(x); solid(x - .2, x + .2, 21.45, 21.85); }
   const wireM = new THREE.LineBasicMaterial({ color: '#222' });
-  for (const dz of [-.8, 0, .8]) { const pts = []; for (let i = 0; i < poles.length - 1; i++) { const a = poles[i], b = poles[i + 1]; for (let k = 0; k <= 8; k++) { const t = k / 8; pts.push(new THREE.Vector3(lerp(a, b, t), 10.1 - Math.sin(t * Math.PI) * .9, 20.6 + dz)); } } g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireM)); }
+  for (const dz of [-.8, 0, .8]) { const pts = []; for (let i = 0; i < poles.length - 1; i++) { const a = poles[i], b = poles[i + 1]; for (let k = 0; k <= 8; k++) { const t = k / 8; pts.push(new THREE.Vector3(lerp(a, b, t), 10.1 - Math.sin(t * Math.PI) * .9, 21.65 + dz)); } } g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), wireM)); }
   // 하천 쪽 주차 차량
   const parked = [[-202, 'car'], [-195, 'car'], [-162, 'truck'], [-152, 'car'], [-140, 'bus'], [-122, 'car'], [-112, 'car'], [-96, 'truck'], [-84, 'car'], [-77, 'car'], [-66, 'bus'], [-50, 'truck'], [-40, 'car'], [-33, 'car'], [-26, 'truck'], [-12, 'car'], [-5, 'car'], [8, 'bus'], [22, 'truck'], [29, 'car'], [40, 'car'], [72, 'car'], [86, 'truck'], [100, 'car'], [110, 'car']];
   for (const [x, k] of parked) { car(g, k, pick(['#2a2d33', '#7d8288', '#e9e9e6', '#3c4a5a', '#8a1f24']), x, 31, Math.PI / 2 * (Math.random() < .5 ? 1 : -1)); solid(x - (k === 'bus' ? 5.6 : 3), x + (k === 'bus' ? 5.6 : 3), 30, 32); }
